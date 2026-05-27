@@ -73,4 +73,12 @@ def move_item(item_origin_path, item_destiny_path, filename):
         print("El archivo no existe, preparando para copiar...")
         shutil.copy(item_origin_path, item_destiny_path)
         print("Archivo copiado con exito!")
-organize_files()
+# organize_files()
+
+def rename_item(tag = "", item = {}):
+    item_path = Path(path)/item.get("filename")
+    _, file_extension = os.path.splitext(item.get("filename"))
+    counter = 1
+    new_name=  f"{tag}{counter}{file_extension}"
+    item_path.rename(new_name)
+    counter += 1 
