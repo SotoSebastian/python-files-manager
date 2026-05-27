@@ -57,11 +57,12 @@ def rename_item(tag = "", item=None, counter=1, filter=""):
     old_name, file_extension = os.path.splitext(item.get("filename"))
     count_format = f"{counter:03}"
     new_name = f"{tag}{count_format}{file_extension}"
+    file_count = counter
     if file_extension == filter:
         item_path.rename(new_name)
+        file_count += 1
         print("Se ha modificado el siguiente archivo:", old_name, "con nuevo nombre:", new_name)
-    else:
-        return
+    return file_count
 #rename_item("probando_rename", {"filename": "Esencial.jpg", "category": "jpg"})
 
 def organize_files():
@@ -72,23 +73,22 @@ def organize_files():
     source_folder = Path(path)
 
     for item in files_data:
-        filename = item["filename"]
-        category = item["filecategory"]
-        count += 1
-        type_counter[category] += 1
+        filename, category = item
+        rename_count = 0
         destination_folder = source_folder / category
         if not destination_folder.exists():
             print(f"Creando carpeta: {category}")
             destination_folder.mkdir()
-        rename_item("vacaciones", item, count, ".jpg")
-
+        file_count = rename_item("vacaciones", item, count, ".jpg")
+        print(file_count)
+        count += 1
         # move_item(
         #     source_folder / filename,
         #     destination_folder,
         #     filename
         # )
-    print(f"\nTotal de archivos organizados: {count}")
+        # for category, count in type_counter.items():
+        #     print(f"{category}: {count}")
 
-    for category, count in type_counter.items():
-        print(f"{category}: {count}")                                                                        
+                                                                            
 organize_files()
