@@ -57,11 +57,11 @@ def rename_item(tag = "", item=None, counter=1, filter=""):
     old_name, file_extension = os.path.splitext(item.get("filename"))
     count_format = f"{counter:03}"
     new_name = f"{tag}{count_format}{file_extension}"
-    _, ext = os.path.splitext(item.get("filename"))
-    if ext == filter:
-        print("Se cambiarán los nombres de los archivos con extensión: ", filter)
+    if file_extension == filter:
         item_path.rename(new_name)
-    print("Se ha modificado el siguiente archivo:", old_name, "con nuevo nombre:", new_name)
+        print("Se ha modificado el siguiente archivo:", old_name, "con nuevo nombre:", new_name)
+    else:
+        return
 #rename_item("probando_rename", {"filename": "Esencial.jpg", "category": "jpg"})
 
 def organize_files():
