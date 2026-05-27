@@ -17,6 +17,7 @@ type_counter = {
     "documents": 0,
     "others": 0
 }
+
 def get_files():
     files = []
     for item in Path(path).iterdir():
@@ -42,30 +43,6 @@ def browse_folder():
         files_data.append(item)
     return(files_data)
 
-def organize_files():
-    files_data = browse_folder()
-    counter = 0
-    for item in files_data:
-        filename = item.get("filename")
-        category = item.get("filecategory")
-        counter += 1
-        type_counter[category] += 1
-        current_path = Path.cwd()/path
-        category_path = Path.cwd()/path/category
-        folder = Path(path) / category
-        if folder.exists():
-            print("Ya existe carpeta de " + category)
-        else:
-            print("No existe la carpeta de " + category)
-            print("Creando carpeta...")
-            folder.mkdir()
-            print("Carpeta creada con exito!")
-        move_item(current_path/filename, category_path, filename)
-    print(f"Total de archivos organizados: {counter}")
-    for category, count in type_counter.items():
-        print(f"{category}: {count}")
-    return
-
 def move_item(item_origin_path, item_destiny_path, filename):
     if  Path(item_destiny_path/filename).exists():
         print("El archivo ya existe" , item_origin_path)
@@ -73,12 +50,44 @@ def move_item(item_origin_path, item_destiny_path, filename):
         print("El archivo no existe, preparando para copiar...")
         shutil.copy(item_origin_path, item_destiny_path)
         print("Archivo copiado con exito!")
-# organize_files()
 
-def rename_item(tag = "", item = {}):
+
+def rename_item(tag = "", item=None, counter=1):
+    if not item :
+        item = {}
     item_path = Path(path)/item.get("filename")
-    _, file_extension = os.path.splitext(item.get("filename"))
-    counter = 1
-    new_name=  f"{tag}{counter}{file_extension}"
+    old_name, file_extension = os.path.splitext(item.get("filename"))
+    count_format = f"{counter:03}"
+    new_name = f"{tag}{count_format}{file_extension}"
     item_path.rename(new_name)
-    counter += 1 
+    print("Se ha modificado el siguiente archivo:", old_name, "con nuevo nombre:", new_name)
+#rename_item("probando_rename", {"filename": "Esencial.jpg", "category": "jpg"})
+
+def organize_files():
+    files_data = browse_folder()
+
+    count = 0
+
+    source_folder = Path(path)
+
+    for item in files_data:
+        filename = item["filename"]
+        category = item["filecategory"]
+        count += 1
+        type_counter[category] += 1
+        destination_folder = source_folder / category
+        if not destination_folder.exists():
+            print(f"Creando carpeta: {category}")
+            destination_folder.mkdir()
+        rename_item("vacaciones", item, count)
+
+        # move_item(
+        #     source_folder / filename,
+        #     destination_folder,
+        #     filename
+        # )
+    print(f"\nTotal de archivos organizados: {count}")
+
+    for category, count in type_counter.items():
+        print(f"{category}: {count}")                                                                        
+organize_files()
