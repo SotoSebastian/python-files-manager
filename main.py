@@ -52,14 +52,15 @@ def move_item(item_origin_path, item_destiny_path, filename):
         print("Archivo copiado con exito!")
 
 
-def rename_item(tag = "", item=None, counter=1):
-    if not item :
-        item = {}
+def rename_item(tag = "", item=None, counter=1, filter=""):
     item_path = Path(path)/item.get("filename")
     old_name, file_extension = os.path.splitext(item.get("filename"))
     count_format = f"{counter:03}"
     new_name = f"{tag}{count_format}{file_extension}"
-    item_path.rename(new_name)
+    _, ext = os.path.splitext(item.get("filename"))
+    if ext == filter:
+        print("Se cambiarán los nombres de los archivos con extensión: ", filter)
+        item_path.rename(new_name)
     print("Se ha modificado el siguiente archivo:", old_name, "con nuevo nombre:", new_name)
 #rename_item("probando_rename", {"filename": "Esencial.jpg", "category": "jpg"})
 
@@ -79,7 +80,7 @@ def organize_files():
         if not destination_folder.exists():
             print(f"Creando carpeta: {category}")
             destination_folder.mkdir()
-        rename_item("vacaciones", item, count)
+        rename_item("vacaciones", item, count, ".jpg")
 
         # move_item(
         #     source_folder / filename,
