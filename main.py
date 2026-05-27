@@ -10,6 +10,13 @@ types = {
     ".pdf": "documents"
 }
 
+type_counter = {
+    "png_images": 0,
+    "images": 0,
+    "videos": 0,
+    "documents": 0,
+    "others": 0
+}
 def get_files():
     files = []
     for item in Path(path).iterdir():
@@ -21,7 +28,7 @@ def get_files():
 def get_extension(archivo):
     _, ext = os.path.splitext(archivo)
     ext = ext.lower()
-    return types.get(ext, "ot")
+    return types.get(ext, "others")
 
 def browse_folder():
     list_files = get_files()
@@ -37,9 +44,12 @@ def browse_folder():
 
 def organize_files():
     files_data = browse_folder()
+    counter = 0
     for item in files_data:
         filename = item.get("filename")
         category = item.get("filecategory")
+        counter += 1
+        type_counter[category] += 1
         current_path = Path.cwd()/path
         category_path = Path.cwd()/path/category
         folder = Path(path) / category
@@ -49,8 +59,11 @@ def organize_files():
             print("No existe la carpeta de " + category)
             print("Creando carpeta...")
             folder.mkdir()
-            print("Car  peta creada con exito!")
+            print("Carpeta creada con exito!")
         move_item(current_path/filename, category_path, filename)
+    print(f"Total de archivos organizados: {counter}")
+    for category, count in type_counter.items():
+        print(f"{category}: {count}")
     return
 
 def move_item(item_origin_path, item_destiny_path, filename):
