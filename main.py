@@ -85,12 +85,11 @@ def organize_files():
         file_all_data = item.get("file_all_data")
         destination_folder = source_folder / category 
         info_status = {f"{str(source_folder)}\{file_all_data}",str(destination_folder)}
-        create_logs("RENAME",info_status)
-        print("Se ha creado el archivo logs")
         if not destination_folder.exists():
             print(f"Creando carpeta: {category}")
             destination_folder.mkdir()
-        rename_count += rename_item("vacaciones", item, count, ".jpg")
+        success_status = rename_item("vacaciones", item, count, ".jpg")
+        rename_count += success_status
         count += 1
         # move_item(
         #     source_folder / filename,
@@ -99,7 +98,9 @@ def organize_files():
         # )
         # for category, count in type_counter.items():
         #     print(f"{category}: {count}")
-
+        if success_status: 
+            create_logs("RENAME",info_status)
+            print("Se ha creado el archivo logs")
     print("Se han editado:",rename_count,"archivos")
 
 organize_files()
