@@ -3,7 +3,6 @@ import shutil
 from pathlib import Path
 from datetime import datetime
 
-path = "test_folder"
 types = {
     ".png": "png_images",
     ".jpg": "images",
@@ -19,7 +18,7 @@ type_counter = {
     "others": 0
 }
 
-def get_files():
+def get_files(path):
     files = []
     for item in Path(path).iterdir():
         if item.is_file():
@@ -34,8 +33,8 @@ def get_extension(item):
 
 
 
-def listar_archivos():
-    list_files = get_files()
+def listar_archivos(path):
+    list_files = get_files(path)
     files_data = []
     list_category = []  #creamos la lista
     for file in list_files:
@@ -62,7 +61,8 @@ def listar_categorias(list_category):
 def move_item(item):
     item_origin_path = item.get("item_origin_path")
     item_destination_path = item.get("item_destination_path")
-    filename = item.get("filename") 
+    filename = item_origin_path.name
+    print(item_origin_path, Path(item_destination_path)/filename)
     success_rename = 0
     if  Path(item_destination_path/filename).exists():
         print("El archivo ya existe" , item_origin_path)
@@ -94,21 +94,21 @@ def create_logs(action, info_status):
         archivo.write(f"{date_format} {action_format} {old_status} {"->"} {now_status}" "\n")
     print (info_status)
 
-def organize_files():
-    files_data, category_data = listar_archivos()
+def organize_files(source):
+    files_data, category_data = listar_archivos(source)
     count = 0
     rename_count = 0
-    source_folder = Path(path)
     for category, count in category_data.items():
         print(f"{category}: {count}")
     for item in files_data:
-        filename = item.get("filename")
         category = item.get("filecategory")
-        destination_folder = source_folder /category
+        filename = item.get("filename")
+        source_folder = Path(source)/filename 
+        destination_folder = Path(source)/category
         if not destination_folder.exists():
             print(f"Creando carpeta: {category}")
             destination_folder.mkdir()
-        item_info = {"item_origin_path" : f"{str(source_folder)}/{filename}","item_destination_path":destination_folder, "filename": filename}
+        item_info = {"item_origin_path" :source_folder,"item_destination_path":destination_folder, "filename": filename}
         count += 1
         # success_status = rename_item("vacaciones", item, count, ".jpg")
         # info_status = {f"{str(source_folder)}/{filename}",str(destination_folder/filename)}
@@ -120,4 +120,4 @@ def organize_files():
     print("Se han editado:",rename_count,"archivos")
 
 
-organize_files()
+organize_files(r"C:\downloads-organizer\test_folder")
