@@ -1,6 +1,7 @@
 import os
 import shutil
 from pathlib import Path
+from datetime import datetime
 
 path = "test_folder"
 types = {
@@ -38,7 +39,8 @@ def browse_folder():
         category = get_extension(file)
         item = {
             "filename" : file, 
-            "filecategory" : category
+            "filecategory" : category,
+            "file_all_data" : f"{file}"
             }
         files_data.append(item)
     return(files_data)
@@ -64,14 +66,27 @@ def rename_item(tag = "", item=None, counter=1, filter=""):
     return success_rename
 #rename_item("probando_rename", {"filename": "Esencial.jpg", "category": "jpg"})
 
+def create_logs(action, info_status):
+    now_status, old_status = info_status
+    date = datetime.now()
+    date_format = f"{"["}{date.strftime("%Y-%m-%d %H:%M:%S")}{"]"}"
+    action_format = f"{"["}{action}{"]"}"
+    with open("logs.txt", "a") as archivo:
+        archivo.write(f"{date_format} {action_format} {old_status} {"->"} {now_status}" "\n")
+
 def organize_files():
     files_data = browse_folder()
     count = 0
     rename_count = 0
     source_folder = Path(path)
     for item in files_data:
-        filename, category = item
-        destination_folder = source_folder / category
+        filename = item.get("filename")
+        category = item.get("filecategory")
+        file_all_data = item.get("file_all_data")
+        destination_folder = source_folder / category 
+        info_status = {f"{str(source_folder)}\{file_all_data}",str(destination_folder)}
+        create_logs("RENAME",info_status)
+        print("Se ha creado el archivo logs")
         if not destination_folder.exists():
             print(f"Creando carpeta: {category}")
             destination_folder.mkdir()
@@ -84,6 +99,7 @@ def organize_files():
         # )
         # for category, count in type_counter.items():
         #     print(f"{category}: {count}")
+
     print("Se han editado:",rename_count,"archivos")
-                                                                            
+
 organize_files()
