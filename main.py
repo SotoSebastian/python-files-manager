@@ -62,7 +62,6 @@ def move_item(item):
     item_origin_path = item.get("item_origin_path")
     item_destination_path = item.get("item_destination_path")
     filename = item_origin_path.name
-    print(item_origin_path, Path(item_destination_path)/filename)
     success_rename = 0
     if  Path(item_destination_path/filename).exists():
         print("El archivo ya existe" , item_origin_path)
@@ -73,9 +72,15 @@ def move_item(item):
         success_rename += 1
     return success_rename
 
-def rename_item(tag = "", item=None, counter=1, filter=""):
-    item_path = Path(path)/item.get("filename")
-    old_name, file_extension = os.path.splitext(item.get("filename"))
+def rename_item(item):
+    tag = item.get("tag")
+    file = item.get("file")
+    counter = item.get("counter")
+    filter = item.get("filter")
+    path = item.get("path")
+
+    item_path = Path(path)/file.get("filename")
+    old_name, file_extension = os.path.splitext(file.get("filename"))
     count_format = f"{counter:03}"
     new_name = f"{tag}{count_format}{file_extension}"
     success_rename = 0
@@ -92,7 +97,6 @@ def create_logs(action, info_status):
     action_format = f"{"["}{action}{"]"}"
     with open("logs.txt", "a") as archivo:
         archivo.write(f"{date_format} {action_format} {old_status} {"->"} {now_status}" "\n")
-    print (info_status)
 
 def organize_files(source):
     files_data, category_data = listar_archivos(source)
@@ -110,12 +114,20 @@ def organize_files(source):
             destination_folder.mkdir()
         item_info = {"item_origin_path" :source_folder,"item_destination_path":destination_folder, "filename": filename}
         count += 1
-        # success_status = rename_item("vacaciones", item, count, ".jpg")
-        # info_status = {f"{str(source_folder)}/{filename}",str(destination_folder/filename)}
-        success_status = move_item(item_info)
+        move_info_status = {f"{str(source_folder)}/{filename}",str(destination_folder/filename)}
+        rename_info_status = {
+            "tag" : "vacaciones",
+            "file" : item,
+            "action" : "RENAME",
+            "counter" : count,
+            "filter" : ".jpg",
+            "path" : source
+        }
+        success_status = rename_item(rename_info_status)
+        #success_status = move_item(item_info)
         rename_count += success_status
         if success_status: 
-            # create_logs("MOVE",info_status)
+            create_logs("MOVE",move_info_status)
             print("Se ha creado el archivo logs")
     print("Se han editado:",rename_count,"archivos")
 
