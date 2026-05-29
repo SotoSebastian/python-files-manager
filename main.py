@@ -34,25 +34,31 @@ def get_extension(item):
 
 
 
-def browse_folder():
+def listar_archivos():
     list_files = get_files()
     files_data = []
-    list_category = []
+    list_category = []  #creamos la lista
     for file in list_files:
         category = get_extension(file)
+        list_category.append(category)
         item = {
             "filename" : file, 
             "filecategory" : category,
             }
-        for category in list_category:
-            if not item.get("filecategory") == category:
-                list_category.append(category)
         files_data.append(item)
     print("Escaneando archivos...")
-    print(list_category)
+    category_data = listar_categorias(list_category)
+    return files_data, category_data
 
-    return files_data
-
+def listar_categorias(list_category):
+    categorias = {}
+    for item_category in list_category:
+        if item_category in categorias:
+            categorias[item_category] += 1
+        else:
+            categorias[item_category] = 1
+    return categorias
+        
 def move_item(item):
     item_origin_path = item.get("item_origin_path")
     item_destination_path = item.get("item_destination_path")
@@ -89,29 +95,29 @@ def create_logs(action, info_status):
     print (info_status)
 
 def organize_files():
-    files_data = browse_folder()
+    files_data, category_data = listar_archivos()
     count = 0
     rename_count = 0
     source_folder = Path(path)
+    for category, count in category_data.items():
+        print(f"{category}: {count}")
     for item in files_data:
         filename = item.get("filename")
         category = item.get("filecategory")
         destination_folder = source_folder /category
-        print(filename,category)
         if not destination_folder.exists():
             print(f"Creando carpeta: {category}")
             destination_folder.mkdir()
-        # success_status = rename_item("vacaciones", item, count, ".jpg")
-        # info_status = {f"{str(source_folder)}/{filename}",str(destination_folder/filename)}
         item_info = {"item_origin_path" : f"{str(source_folder)}/{filename}","item_destination_path":destination_folder, "filename": filename}
         count += 1
+        # success_status = rename_item("vacaciones", item, count, ".jpg")
+        # info_status = {f"{str(source_folder)}/{filename}",str(destination_folder/filename)}
         success_status = move_item(item_info)
         rename_count += success_status
-        for category, count in type_counter.items():
-            print(f"{category}: {count}")
-        # if success_status: 
-        #     create_logs("MOVE",info_status)
-        #     print("Se ha creado el archivo logs")
+        if success_status: 
+            # create_logs("MOVE",info_status)
+            print("Se ha creado el archivo logs")
     print("Se han editado:",rename_count,"archivos")
+
 
 organize_files()
