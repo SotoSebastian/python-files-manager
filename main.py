@@ -40,7 +40,6 @@ def browse_folder():
         item = {
             "filename" : file, 
             "filecategory" : category,
-            "file_all_data" : f"{file}"
             }
         files_data.append(item)
     return(files_data)
@@ -64,7 +63,6 @@ def rename_item(tag = "", item=None, counter=1, filter=""):
         print("Se ha modificado el siguiente archivo:", old_name, "con nuevo nombre:", new_name)
         success_rename += 1
     return success_rename
-#rename_item("probando_rename", {"filename": "Esencial.jpg", "category": "jpg"})
 
 def create_logs(action, info_status):
     now_status, old_status = info_status
@@ -73,6 +71,7 @@ def create_logs(action, info_status):
     action_format = f"{"["}{action}{"]"}"
     with open("logs.txt", "a") as archivo:
         archivo.write(f"{date_format} {action_format} {old_status} {"->"} {now_status}" "\n")
+    print (info_status)
 
 def organize_files():
     files_data = browse_folder()
@@ -82,9 +81,8 @@ def organize_files():
     for item in files_data:
         filename = item.get("filename")
         category = item.get("filecategory")
-        file_all_data = item.get("file_all_data")
-        destination_folder = source_folder / category 
-        info_status = {f"{str(source_folder)}\{file_all_data}",str(destination_folder)}
+        destination_folder = source_folder /category
+        info_status = {f"{str(source_folder)}/{filename}",str(destination_folder/filename)}
         if not destination_folder.exists():
             print(f"Creando carpeta: {category}")
             destination_folder.mkdir()
@@ -99,7 +97,7 @@ def organize_files():
         # for category, count in type_counter.items():
         #     print(f"{category}: {count}")
         if success_status: 
-            create_logs("RENAME",info_status)
+            create_logs("MOVE",info_status)
             print("Se ha creado el archivo logs")
     print("Se han editado:",rename_count,"archivos")
 
