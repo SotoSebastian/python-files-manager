@@ -1,6 +1,7 @@
 import os
 import shutil
 from pathlib import Path
+import questionary
 
 path = "test_folder"
 types = {
@@ -17,6 +18,25 @@ type_counter = {
     "documents": 0,
     "others": 0
 }
+
+option = questionary.select(
+    "¿Qué deseas hacer?",
+    choices=[
+        "Mover archivos",
+        "Renombrar archivos",
+        "Salir"
+    ]
+).ask()
+
+print(option)
+
+if option == 'Mover archivos':
+    ruta = input("ingresa la ruta de LA CARPETA donde se encuentra el archivo")
+elif option == 'Renombrar archivos':
+    print("")
+elif option == 'Salir':
+    print("")
+
 
 def get_files():
     files = []
