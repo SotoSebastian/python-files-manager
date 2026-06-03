@@ -30,43 +30,10 @@ option = questionary.select(
 
 print(option)
 
-if option == 'Organizar archivos':
-    origin_path = input("Ingresa la ruta de LA CARPETA donde se encuentran los archivos ")
-    # se valida si la ruta existe o si está bien ingresada, si no se vuelve a pedir la ruta 
-    while not origin_path.strip() or not Path(origin_path).is_dir():
-        error_info = { "error_type" : "RUTA_INVALIDA" , "error_message" : "La ruta indicada no existe, copia la ruta directo desde el explorador de archivos y pegala aquí:"}
-        origin_path = input(f"\n {error_info["error_type"]}" f"\n {error_info["error_message"]} \n ")
-    # se solicita ruta de destino, se puede utilizar el mismo directorio u otro nuevo que se solicita y valida 
 
-    destination_options = questionary.select(
-        "¿Donde deseas distribuir los archivos?",
-        choices=[
-            "En esta misma carpeta, separadas en carpetas distintas según su extensión",
-            "En un nuevo directorio",
-            "Salir"
-        ]
-    ).ask()
-
-    if destination_options == "En un nuevo directorio":
-        destination_path = input("Ingresa la ruta de LA CARPETA hacía donde se deseas mover los archivos")
-        # se valida si la ruta existe o si está bien ingresada, si no se vuelve a pedir la ruta
-        while not Path(destination_path).is_dir():
-           
-            destination_path = input(f"{error_info["error_type"], error_info["error_message"]}")
-        # luego se solicita la ruta de destino, se valida si existe, si no existe se ofrece crear la carpeta o utilizar la misma carpeta de origen.
-        destination_path = input("Ingresa la ruta de destino")
-    elif destination_options == "En esta misma carpeta, separadas en carpetas distintas según su extensión":
-        destination_path = Path.cwd
-
-elif option == 'Renombrar archivos':
-    print("")   # preguntar si se desea editar un solo archivo o todos los archivos de la carpeta, y luego pedir el tag a agregar al nombre del archivo
-elif option == 'Salir':
-    print("")
-
-
-def get_files():
+def get_files(path):
     files = []
-    for item in Path("test_folder").iterdir():
+    for item in Path(path).iterdir():
         if item.is_file():
             files.append(item.name)
             
@@ -78,8 +45,15 @@ def get_extension(item):
     return types.get(ext, "others")
 
 
-
-
+def listar_categorias(list_category):
+    categorias = {}
+    for item_category in list_category:
+        if item_category in categorias:
+            categorias[item_category] += 1
+        else:
+            categorias[item_category] = 1
+    return categorias
+        
 
 def listar_archivos(path):
     list_files = get_files(path)
@@ -97,28 +71,19 @@ def listar_archivos(path):
     category_data = listar_categorias(list_category)
     return files_data, category_data
 
-def listar_categorias(list_category):
-    categorias = {}
-    for item_category in list_category:
-        if item_category in categorias:
-            categorias[item_category] += 1
-        else:
-            categorias[item_category] = 1
-    return categorias
-        
 def move_item(item):
     item_origin_path = item.get("item_origin_path")
     item_destination_path = item.get("item_destination_path")
     filename = item_origin_path.name
-    success_rename = 0
+    success = 0
     if  Path(item_destination_path/filename).exists():
         print("El archivo ya existe" , item_origin_path)
     else:
         print("El archivo no existe, preparando para copiar...")
         shutil.move(item_origin_path, item_destination_path)
         print("Archivo copiado con exito!")
-        success_rename += 1
-    return success_rename
+        success = 1
+    return success
 
 def rename_item(item):
     tag = item.get("tag")
@@ -146,7 +111,7 @@ def create_logs(action, info_status):
     with open("logs.txt", "a") as archivo:
         archivo.write(f"{date_format} {action_format} {old_status} {"->"} {now_status}" "\n")
 
-def organize_files(source):
+def organize_files(source, destination_path):
     files_data, category_data = listar_archivos(source)
     count = 0
     rename_count = 0
@@ -156,7 +121,7 @@ def organize_files(source):
         category = item.get("filecategory")
         filename = item.get("filename")
         source_folder = Path(source)/filename 
-        destination_folder = Path(source)/category
+        destination_folder = Path(destination_path)/category
         if not destination_folder.exists():
             print(f"Creando carpeta: {category}")
             destination_folder.mkdir()
@@ -171,8 +136,8 @@ def organize_files(source):
             "filter" : ".jpg",
             "path" : source
         }
-        success_status = rename_item(rename_info_status)
-        #success_status = move_item(item_info)
+        #success_status = rename_item(rename_info_status)
+        success_status = move_item(item_info)
         rename_count += success_status
         if success_status: 
             create_logs("MOVE",move_info_status)
@@ -181,3 +146,32 @@ def organize_files(source):
 
 
 #organize_files(r"C:\downloads-organizer\test_folder")
+
+if option == 'Organizar archivos':
+
+    origin_path = input("Ingresa la ruta de la carpeta DONDE/ORIGEN se encuentran los archivos ")
+    while not origin_path.strip() or not Path(origin_path).is_dir():
+        error_info = { "error_type" : "RUTA_INVALIDA" , "error_message" : "La ruta indicada no existe, copia la ruta directo desde el explorador de archivos y pegala aquí:"}
+        origin_path = input(f"\n {error_info["error_type"]}" f"\n {error_info["error_message"]} \n ")
+    destination_options = questionary.select(
+        "¿Donde deseas distribuir los archivos?",
+        choices=[
+            "En esta misma carpeta, separadas en carpetas distintas según su extensión",
+            "En un nuevo directorio",
+            "Salir"
+        ]
+    ).ask()
+
+    if destination_options == "En un nuevo directorio":
+        destination_path = input("Ingresa la ruta de la carpeta HACIA/DESTINATION donde se deseas mover los archivos")
+        while not destination_path.strip() or not Path(destination_path).is_dir():
+            error_info = { "error_type" : "RUTA_INVALIDA" , "error_message" : "La ruta indicada no existe, copia la ruta directo desde el explorador de archivos y pegala aquí:"}
+            destination_path = input(f"\n {error_info["error_type"]}" f"\n {error_info["error_message"]} \n ")
+    elif destination_options == "En esta misma carpeta, separadas en carpetas distintas según su extensión":
+        destination_path = origin_path
+        print("Iniciando proceso...")
+    organize_files(origin_path, destination_path)
+elif option == 'Renombrar archivos':
+    print("RENOMBRAR ARCHIVOS")   # preguntar si se desea editar un solo archivo o todos los archivos de la carpeta, y luego pedir el tag a agregar al nombre del archivo
+elif option == 'Salir':
+    print("CHAU")
