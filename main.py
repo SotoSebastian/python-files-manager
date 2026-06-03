@@ -31,14 +31,13 @@ option = questionary.select(
 print(option)
 
 if option == 'Organizar archivos':
-    error_info = {"error_type" : "", "error_message" : ""}
-    origin_path = input("Ingresa la ruta de LA CARPETA donde se encuentran los archivos\n")
-    # se valida si la ruta existe o si está bien ingresada, si no se vuelve a pedir la ruta
-    while not Path(origin_path).exists():
-        error_info["error_type"] = "RUTA_INVALIDA"
-        error_info["error_message"] = "La ruta indicada no existe, copia la ruta directo desde el explorador de archivos\n"
-        origin_path = input(f"{error_info["error_type"], error_info["error_message"]}")
-    #se solicita ruta de destino, se puede utilizar el mismo directorio u otro nuevo que se solicita y valida 
+    origin_path = input("Ingresa la ruta de LA CARPETA donde se encuentran los archivos ")
+    # se valida si la ruta existe o si está bien ingresada, si no se vuelve a pedir la ruta 
+    while not origin_path.strip() or not Path(origin_path).is_dir():
+        error_info = { "error_type" : "RUTA_INVALIDA" , "error_message" : "La ruta indicada no existe, copia la ruta directo desde el explorador de archivos y pegala aquí:"}
+        origin_path = input(f"\n {error_info["error_type"]}" f"\n {error_info["error_message"]} \n ")
+    # se solicita ruta de destino, se puede utilizar el mismo directorio u otro nuevo que se solicita y valida 
+
     destination_options = questionary.select(
         "¿Donde deseas distribuir los archivos?",
         choices=[
@@ -47,12 +46,12 @@ if option == 'Organizar archivos':
             "Salir"
         ]
     ).ask()
+
     if destination_options == "En un nuevo directorio":
-        destination_path = input("Ingresa la ruta de LA CARPETA hacía donde se deseas mover los archivos\n")
+        destination_path = input("Ingresa la ruta de LA CARPETA hacía donde se deseas mover los archivos")
         # se valida si la ruta existe o si está bien ingresada, si no se vuelve a pedir la ruta
-        while not Path(destination_path).exists():
-            error_info["error_type"] = "RUTA_INVALIDA"
-            error_info["error_message"] = "La ruta indicada no existe, copia la ruta directo desde el explorador de archivos\n"
+        while not Path(destination_path).is_dir():
+           
             destination_path = input(f"{error_info["error_type"], error_info["error_message"]}")
         # luego se solicita la ruta de destino, se valida si existe, si no existe se ofrece crear la carpeta o utilizar la misma carpeta de origen.
         destination_path = input("Ingresa la ruta de destino")
@@ -77,6 +76,8 @@ def get_extension(item):
     _, ext = os.path.splitext(item)
     ext = ext.lower()
     return types.get(ext, "others")
+
+
 
 
 
@@ -179,4 +180,4 @@ def organize_files(source):
     print("Se han editado:",rename_count,"archivos")
 
 
-organize_files(r"C:\downloads-organizer\test_folder")
+#organize_files(r"C:\downloads-organizer\test_folder")
