@@ -111,7 +111,7 @@ def create_logs(action, info_status):
     with open("logs.txt", "a") as archivo:
         archivo.write(f"{date_format} {action_format} {old_status} {"->"} {now_status}" "\n")
 
-def organize_files(source, destination_path):
+def organize_files(source, destination_path, action):
     files_data, category_data = listar_archivos(source)
     count = 0
     rename_count = 0
@@ -122,26 +122,32 @@ def organize_files(source, destination_path):
         filename = item.get("filename")
         source_folder = Path(source)/filename 
         destination_folder = Path(destination_path)/category
-        if not destination_folder.exists():
-            print(f"Creando carpeta: {category}")
-            destination_folder.mkdir()
         item_info = {"item_origin_path" :source_folder,"item_destination_path":destination_folder, "filename": filename}
-        count += 1
-        move_info_status = {f"{str(source_folder)}/{filename}",str(destination_folder/filename)}
-        rename_info_status = {
-            "tag" : "vacaciones",
-            "file" : item,
-            "action" : "RENAME",
-            "counter" : count,
-            "filter" : ".jpg",
-            "path" : source
-        }
-        #success_status = rename_item(rename_info_status)
-        success_status = move_item(item_info)
-        rename_count += success_status
-        if success_status: 
+        if action == "MOVE":
+            if not destination_folder.exists():
+                print(f"Creando carpeta: {category}")
+                destination_folder.mkdir()
+            move_info_status = {f"{str(source_folder)}/{filename}",str(destination_folder/filename)}
+            success_status = move_item(item_info)
+            count += 1
+            print("Se moveran archivos....")
+            create_logs(action,move_info_status)
+            print("Se ha creado el archivo logs")
+        if action == "RENAME":
+            rename_info_status = {
+                "tag" : "vacaciones",
+                "file" : item,
+                "action" : "RENAME",
+                "counter" : count,
+                "filter" : ".jpg",
+                "path" : source
+            }
+            success_status = rename_item(rename_info_status)
+            count += 1
+            print("Se renombrarán archivos....")
             create_logs("MOVE",move_info_status)
             print("Se ha creado el archivo logs")
+    rename_count += success_status
     print("Se han editado:",rename_count,"archivos")
 
 
@@ -170,7 +176,7 @@ if option == 'Organizar archivos':
     elif destination_options == "En esta misma carpeta, separadas en carpetas distintas según su extensión":
         destination_path = origin_path
         print("Iniciando proceso...")
-    organize_files(origin_path, destination_path)
+    organize_files(origin_path, destination_path,"MOVE")
 elif option == 'Renombrar archivos':
     print("RENOMBRAR ARCHIVOS")   # preguntar si se desea editar un solo archivo o todos los archivos de la carpeta, y luego pedir el tag a agregar al nombre del archivo
 elif option == 'Salir':
