@@ -11,156 +11,17 @@ types = {
     ".pdf": "documents"
 }
 
-type_counter = {
-    "png_images": 0,
-    "images": 0,
-    "videos": 0,
-    "documents": 0,
-    "others": 0
-}
-
-option = questionary.select(
-    "¿Qué deseas hacer?",
-    choices=[
-        "Organizar archivos",
-        "Renombrar archivos",
-        "Salir"
-    ]
-).ask()
-
-print(option)
-
-
-def get_files(path):
-    files = []
-    for item in Path(path).iterdir():
-        if item.is_file():
-            files.append(item.name)
-    return files
-
-def get_extension(item):
-    _, ext = os.path.splitext(item)
-    ext = ext.lower()
-    return types.get(ext, "others")
-
-
-def list_categories(list):
-    categories = {}
-    for item in list:
-        if item in categories:
-            categories[item] += 1
-        else:
-            categories[item] = 1
-    return categories
-    
-
-def process_list_files(path):
-    list_files = get_files(path)
-    files_data = []
-    for file in list_files:
-        category = ""
-        item = {
-            "filename" : file, 
-            "filecategory" : category,
-            }
-        files_data.append(item)
-    return files_data
-
-def process_list_categories(files_data):
-    list_categories = []
-    for file in files_data:
-        category = get_extension(file)
-        list_categories.append(category)
-    category_data = list_categories(list_categories)
-    return category_data
-
-def action_move_item(item):
-    item_origin_path = item.get("item_origin_path")
-    item_destination_path = item.get("item_destination_path")
-    filename = item_origin_path.name
-    if  Path(item_destination_path/filename).exists():
-        print("El archivo ya existe" , item_origin_path)
-        return False
-    else:
-        print("El archivo no existe, preparando para copiar...")
-        shutil.move(item_origin_path, item_destination_path)
-        print("Archivo copiado con exito!")
-        return True
-
-def action_rename_item(item):
-    tag = item.get("tag")
-    file = item.get("file")
-    counter = item.get("counter")
-    filter = item.get("filter")
-    path = item.get("path")
-    item_path = Path(path)/file.get("filename")
-    old_name, file_extension = os.path.splitext(file.get("filename"))
-    count_format = f"{counter:03}"
-    new_name = f"{tag}{count_format}{file_extension}"
-    success_rename = 0
-    if file_extension == filter:
-        item_path.rename(new_name)
-        print("Se ha modificado el siguiente archivo:", old_name, "con nuevo nombre:", new_name)
-        success_rename += 1
-    return success_rename
-
-def action_create_logs(action, info_status):
-    now_status, old_status = info_status
-    date = datetime.now()
-    date_format = f"{"["}{date.strftime("%Y-%m-%d %H:%M:%S")}{"]"}"
-    action_format = f"{"["}{action}{"]"}"
-    with open("logs.txt", "a") as archivo:
-        archivo.write(f"{date_format} {action_format} {old_status} {"->"} {now_status}" "\n")
-
-def process_action_move(destination, source, item):
-    category = item.get("filecategory")
-    filename = item.get("filename")
-    source_folder = Path(source)/filename 
-    destination_folder = Path(destination)/category
-    item_info = {"item_origin_path" :source_folder,"item_destination_path":destination_folder, "filename": filename}
-
-    if not destination_folder.exists():
-        print(f"Creando carpeta: {category}")
-        destination_folder.mkdir()
-    move_info_status = {f"{str(source_folder)}/{filename}",str(destination_folder/filename)}
-    print("Se moveran archivos....")
-    success = action_move_item(item_info)
-    action_create_logs("MOVE",move_info_status)
-    print("Se ha creado el archivo logs")
-    return success
-
-def process_action_rename():
-
-
-def organize_files(source, destination_path, action):
-    files_data = process_list_files(source)
-    
-    rename_count = 0
-    move_count = 0
-    for item in files_data:
-        if action == "MOVE":
-            move_count += process_action_move(source, destination_path, item)
-        if action == "RENAME":
-            rename_count += process_action_rename(source, destination_path, item)
-            rename_info_status = {
-                "tag" : "vacaciones",
-                "file" : item,
-                "action" : "RENAME",
-                "counter" : files_worked_count,
-                "filter" : ".jpg",
-                "path" : source
-            }
-            success_status = action_rename_item(tag, file )
-            files_worked_count += 1
-            print("Se renombrarán archivos....")
-            action_create_logs(action,move_info_status)
-            print("Se ha creado el archivo logs")
-            rename_count += success_status
-    print("Se han editado:",rename_count,"archivos")
-#ToDo: trabajar esta sección para que funcione con move y rename
-
-#organize_files(r"C:\downloads-organizer\test_folder")
 def main():
+    option = questionary.select(
+        "¿Qué deseas hacer?",
+        choices=[
+            "Organizar archivos",
+            "Renombrar archivos",
+            "Salir"
+        ]
+    ).ask()
+
+    print(option)
     if option == 'Organizar archivos':
         origin_path = input("Ingresa la ruta de la carpeta DONDE/ORIGEN se encuentran los archivos ")
         while not origin_path.strip() or not Path(origin_path).is_dir():
@@ -193,9 +54,160 @@ def main():
         organize_files(origin_path, destination_path,"MOVE")
 
     elif option == 'Renombrar archivos':
-
+        origin_path = input("Ingresa la ruta de la carpeta DONDE/ORIGEN se encuentran los archivos ")
+        while not origin_path.strip() or not Path(origin_path).is_dir():
+            error_info = { "error_type" : "RUTA_INVALIDA" , "error_message" : "La ruta indicada no existe, copia la ruta directo desde el explorador de archivos y pegala aquí:"}
+            origin_path = input(f"\n {error_info["error_type"]}" f"\n {error_info["error_message"]} \n ")
         print("RENOMBRAR ARCHIVOS proceso...")   # preguntar si se desea editar un solo archivo o todos los archivos de la carpeta, y luego pedir el tag a agregar al nombre del archivo
+        print("Se han encontrado los siguientes tipos de archivos:")
+        
+        for item in files_data:
+            category = get_extension(item)
+            
+
+
+        for counter,_ in enumerate(files_data, start = 1):
+            counter += 1
+
+        files_data = process_list_categories((get_files(origin_path)))
+        print("Se han detectado los siguientes archivos con extensión: ")
 
 
     elif option == 'Salir':
         print("CHAU")
+
+def get_files(path):
+    files = []
+    for item in Path(path).iterdir():
+        if item.is_file():
+            files.append(item.name)
+    return files
+
+def get_extension(item):
+    _, ext = os.path.splitext(item)
+    ext = ext.lower()
+    return types.get(ext, "others")
+
+
+def list_categories(categories_list):
+    categories = {}
+    for item in categories_list:
+        if item in categories:
+            categories[item] += 1
+        else:
+            categories[item] = 1
+    return categories
+    
+
+def process_list_files(path):
+    list_files = get_files(path)
+    files_data = []
+    for file in list_files:
+        item = {
+            "filename" : file, 
+            "filecategory" : get_extension(file),
+            }
+        files_data.append(item)
+    return files_data
+
+def process_list_categories(files_data):
+    categories_list = []
+    for file in files_data:
+        category = get_extension(file)
+        categories_list.append(category)
+    category_data = list_categories(categories_list)
+    return category_data
+
+def process_action_move(destination, source, item):
+    category = item.get("filecategory")
+    filename = item.get("filename")
+    source_file = Path(source)/filename 
+    destination_folder = Path(destination)/category
+    item_info = {"item_origin_path" :source_file,"item_destination_path":destination_folder, "filename": filename}
+
+    if not destination_folder.exists():
+        print(f"Creando carpeta: {category}")
+        destination_folder.mkdir()
+    move_info_status = (
+        str(source_file),
+        str(destination_folder / filename)
+    )
+    print("Se moveran archivos....")
+    success = action_move_item(item_info)
+    action_create_logs("MOVE",move_info_status)
+    print("Se ha creado el archivo logs")
+    return success
+
+def process_action_rename(source, destination, item, tag, filter, counter):
+    print("Se renombrarán archivos....")
+    success, old_name, new_name = action_rename_item(tag, item, filter, source, counter )
+    rename_info_status = (
+        str(source)/old_name, 
+        str(destination/new_name)
+    )
+    action_create_logs("RENAME",rename_info_status)
+    print("Se ha creado el archivo logs")
+    return success
+
+def action_move_item(item):
+    item_origin_path = item.get("item_origin_path")
+    item_destination_path = item.get("item_destination_path")
+    filename = item_origin_path.name
+    if  Path(item_destination_path/filename).exists():
+        print("El archivo ya existe" , item_origin_path)
+        return False
+    else:
+        print("El archivo no existe, preparando para copiar...")
+        shutil.move(item_origin_path, item_destination_path)
+        print("Archivo copiado con exito!")
+        return True
+
+def action_rename_item(tag, file, filter, path, counter):
+    item_path = Path(path)/file.get("filename")
+    old_name, file_extension = os.path.splitext(file.get("filename"))
+    count_format = f"{counter:03}"
+    new_name = f"{tag}{count_format}{file_extension}"
+    success_rename = 0
+    if file_extension == filter:
+        item_path.rename(new_name)
+        print("Se ha modificado el siguiente archivo:", old_name, "con nuevo nombre:", new_name)
+        success_rename += 1
+    return success_rename, old_name, new_name
+
+def action_create_logs(action, info_status):
+    origin, destination = info_status
+    date = datetime.now()
+    date_format = f"{"["}{date.strftime("%Y-%m-%d %H:%M:%S")}{"]"}"
+    action_format = f"{"["}{action}{"]"}"
+    with open("logs.txt", "a") as archivo:
+        archivo.write(
+        f"{date_format} {action_format} {origin} -> {destination}\n"
+    )
+
+
+def organize_files(source, destination_path, action):
+    files_data = process_list_files(source)
+    move_count = 0
+    rename_count = 0
+    if action == "MOVE":
+        for item in files_data:
+            move_count += process_action_move(destination_path, source, item)
+        print("Se han movido:",move_count,"archivos")
+    if action == "RENAME":
+        tag = input("Ingrese la etiqueta de nuevos archivos, se utilizará para renombrar y clasificar los archivos")
+        filter = questionary.select(
+            "Se detectaron los siguientes tipos de archivos, por favor selecciona que tipo de archivo deseas renombrar: \n",
+                choices=[
+                    ".jpg",
+                    ".docs",
+                    ".mp4",
+                    ".docs",
+                    "Salir"
+                ]
+        ).ask()
+        for counter, item in enumerate(files_data,start = 1):
+            rename_count += process_action_rename(source, destination_path, item, tag, filter, counter)
+        print("Se han editado:",rename_count,"archivos")
+
+if __name__ == "__main__":
+    main()
