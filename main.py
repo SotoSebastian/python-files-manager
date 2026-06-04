@@ -45,17 +45,17 @@ def get_extension(item):
     return types.get(ext, "others")
 
 
-def listar_categorias(list_category):
-    categorias = {}
-    for item_category in list_category:
-        if item_category in categorias:
-            categorias[item_category] += 1
+def list_categories(list):
+    categories = {}
+    for item in list:
+        if item in categories:
+            categories[item] += 1
         else:
-            categorias[item_category] = 1
-    return categorias
-        
+            categories[item] = 1
+    return categories
+    
 
-def listar_archivos(path):
+def set_list(path):
     list_files = get_files(path)
     files_data = []
     list_category = []  #creamos la lista
@@ -68,7 +68,7 @@ def listar_archivos(path):
             }
         files_data.append(item)
     print("Escaneando archivos...")
-    category_data = listar_categorias(list_category)
+    category_data = list_categories(list_category)
     return files_data, category_data
 
 def move_item(item):
@@ -91,7 +91,6 @@ def rename_item(item):
     counter = item.get("counter")
     filter = item.get("filter")
     path = item.get("path")
-
     item_path = Path(path)/file.get("filename")
     old_name, file_extension = os.path.splitext(file.get("filename"))
     count_format = f"{counter:03}"
@@ -111,54 +110,70 @@ def create_logs(action, info_status):
     with open("logs.txt", "a") as archivo:
         archivo.write(f"{date_format} {action_format} {old_status} {"->"} {now_status}" "\n")
 
+def get_list(data):
+    format_list = []
+    for item in data:
+        category = item.get("filecategory")
+        filename = item.get("filename")
+        format_list.append({"filename" : filename, "category" : category})
+    return format_list
+
 def organize_files(source, destination_path, action):
-    files_data, category_data = listar_archivos(source)
-    count = 0
+    files_data, _ = set_list(source)
+    
+    files_worked_count = 0
     rename_count = 0
-    for category, count in category_data.items():
-        print(f"{category}: {count}")
     for item in files_data:
         category = item.get("filecategory")
         filename = item.get("filename")
+
         source_folder = Path(source)/filename 
         destination_folder = Path(destination_path)/category
+
         item_info = {"item_origin_path" :source_folder,"item_destination_path":destination_folder, "filename": filename}
+
         if action == "MOVE":
             if not destination_folder.exists():
                 print(f"Creando carpeta: {category}")
                 destination_folder.mkdir()
             move_info_status = {f"{str(source_folder)}/{filename}",str(destination_folder/filename)}
-            success_status = move_item(item_info)
-            count += 1
             print("Se moveran archivos....")
+            success_status = move_item(item_info)
+            files_worked_count += 1
             create_logs(action,move_info_status)
             print("Se ha creado el archivo logs")
+
         if action == "RENAME":
             rename_info_status = {
                 "tag" : "vacaciones",
                 "file" : item,
                 "action" : "RENAME",
-                "counter" : count,
+                "counter" : files_worked_count,
                 "filter" : ".jpg",
                 "path" : source
             }
             success_status = rename_item(rename_info_status)
-            count += 1
+            files_worked_count += 1
             print("Se renombrarán archivos....")
-            create_logs("MOVE",move_info_status)
+            create_logs(action,move_info_status)
             print("Se ha creado el archivo logs")
+
     rename_count += success_status
     print("Se han editado:",rename_count,"archivos")
-
+#ToDo: trabajar esta sección para que funcione con move y rename
 
 #organize_files(r"C:\downloads-organizer\test_folder")
 
 if option == 'Organizar archivos':
-
     origin_path = input("Ingresa la ruta de la carpeta DONDE/ORIGEN se encuentran los archivos ")
     while not origin_path.strip() or not Path(origin_path).is_dir():
         error_info = { "error_type" : "RUTA_INVALIDA" , "error_message" : "La ruta indicada no existe, copia la ruta directo desde el explorador de archivos y pegala aquí:"}
         origin_path = input(f"\n {error_info["error_type"]}" f"\n {error_info["error_message"]} \n ")
+    
+    _, category_data = set_list(origin_path)
+    for category, category_count in category_data.items():
+        print(f"{category}: {category_count}")
+    input("Se han detectado los siguientes archivos, presiona enter para continuar y ctrl+C para cancelar \n")
     destination_options = questionary.select(
         "¿Donde deseas distribuir los archivos?",
         choices=[
@@ -167,6 +182,8 @@ if option == 'Organizar archivos':
             "Salir"
         ]
     ).ask()
+
+
 
     if destination_options == "En un nuevo directorio":
         destination_path = input("Ingresa la ruta de la carpeta HACIA/DESTINATION donde se deseas mover los archivos")
@@ -177,7 +194,11 @@ if option == 'Organizar archivos':
         destination_path = origin_path
         print("Iniciando proceso...")
     organize_files(origin_path, destination_path,"MOVE")
+
 elif option == 'Renombrar archivos':
-    print("RENOMBRAR ARCHIVOS")   # preguntar si se desea editar un solo archivo o todos los archivos de la carpeta, y luego pedir el tag a agregar al nombre del archivo
+
+    print("RENOMBRAR ARCHIVOS proceso...")   # preguntar si se desea editar un solo archivo o todos los archivos de la carpeta, y luego pedir el tag a agregar al nombre del archivo
+
+
 elif option == 'Salir':
     print("CHAU")
