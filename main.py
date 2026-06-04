@@ -61,16 +61,10 @@ def main():
         print("RENOMBRAR ARCHIVOS proceso...")   # preguntar si se desea editar un solo archivo o todos los archivos de la carpeta, y luego pedir el tag a agregar al nombre del archivo
         print("Se han encontrado los siguientes tipos de archivos:")
         
-        for item in files_data:
-            category = get_extension(item)
-            
-
-
-        for counter,_ in enumerate(files_data, start = 1):
-            counter += 1
-
-        files_data = process_list_categories((get_files(origin_path)))
-        print("Se han detectado los siguientes archivos con extensión: ")
+        extension_data = get_files_extension(origin_path)
+        # print("Se han detectado los siguientes archivos con extensión: ")
+        # for ext in extension_data:
+        #     print (ext)
 
 
     elif option == 'Salir':
@@ -83,11 +77,19 @@ def get_files(path):
             files.append(item.name)
     return files
 
-def get_extension(item):
+def get_file_category(item):
     _, ext = os.path.splitext(item)
     ext = ext.lower()
     return types.get(ext, "others")
 
+def get_files_extension(path):
+    list_extensions = []
+    for item in Path(path).iterdir():
+        _, ext = os.path.splitext(item)
+        ext = ext.lower()
+        if ext not in list_extensions:
+            list_extensions.append(ext)
+    return list_extensions
 
 def list_categories(categories_list):
     categories = {}
@@ -105,15 +107,15 @@ def process_list_files(path):
     for file in list_files:
         item = {
             "filename" : file, 
-            "filecategory" : get_extension(file),
-            }
+            "filecategory" : get_file_category(file),
+            }   
         files_data.append(item)
     return files_data
 
 def process_list_categories(files_data):
     categories_list = []
     for file in files_data:
-        category = get_extension(file)
+        category = get_file_category(file)
         categories_list.append(category)
     category_data = list_categories(categories_list)
     return category_data
