@@ -4,7 +4,7 @@ from pathlib import Path
 import questionary
 from datetime import datetime
 
-types = {
+files_categories = {
     ".png": "png_images",
     ".jpg": "images",
     ".mp4": "videos",
@@ -41,8 +41,6 @@ def main():
             ]
         ).ask()
 
-
-
         if destination_options == "En un nuevo directorio":
             destination_path = input("Ingresa la ruta de la carpeta HACIA/DESTINATION donde se deseas mover los archivos")
             while not destination_path.strip() or not Path(destination_path).is_dir():
@@ -62,6 +60,19 @@ def main():
         print("Se han encontrado los siguientes tipos de archivos:")
         
         extension_data = get_files_extension(origin_path)
+        return print (extension_data)
+        extensions_selected_to_work = questionary.checkbox(
+            "¿Se encontraron los siguientes tipos de archivo, por favor selecciona el que deseas incluir?",
+            choices=extension_data
+        ).ask()
+        print("Buscando archivos según los filtros ingresados...")
+        extension_counter = {}
+
+        # for item in extension_data:
+        #     for i_extension in extensions_selected_to_work:
+        #         if i_extension == item.get("filecategory"):
+                    
+        process_action_rename(origin_path, origin_path, extensions_selected_to_work , _)
         # print("Se han detectado los siguientes archivos con extensión: ")
         # for ext in extension_data:
         #     print (ext)
@@ -80,15 +91,17 @@ def get_files(path):
 def get_file_category(item):
     _, ext = os.path.splitext(item)
     ext = ext.lower()
-    return types.get(ext, "others")
+    return files_categories.get(ext, "others")
 
 def get_files_extension(path):
-    list_extensions = []
+    list_extensions = {}
     for item in Path(path).iterdir():
         _, ext = os.path.splitext(item)
         ext = ext.lower()
         if ext not in list_extensions:
-            list_extensions.append(ext)
+            list_extensions[ext] = 1
+        elif ext in list_extensions:
+            list_extensions[ext] += 1
     return list_extensions
 
 def list_categories(categories_list):
