@@ -60,19 +60,22 @@ def main():
         print("Se han encontrado los siguientes tipos de archivos:")
         
         extension_data = get_files_extension(origin_path)
-        return print (extension_data)
         extensions_selected_to_work = questionary.checkbox(
             "¿Se encontraron los siguientes tipos de archivo, por favor selecciona el que deseas incluir?",
             choices=extension_data
         ).ask()
-        print("Buscando archivos según los filtros ingresados...")
-        extension_counter = {}
-
+        #preguntar por nuevo nombre "tag"
+        files_data = process_list_files(origin_path)
+        name_tag = input(f"{"Ingresa el prefijo con el que deseas renombrar tus archivos de tipo"} {extensions_selected_to_work}")
+        print("Confirma la acción: RENOMBRAR archivos con la siguiente extensión: ")
+        print(extensions_selected_to_work) 
+        #ToDo hacer que se vea mas ordenado los nombres de archivos y extensiones seleccionadas. se muestran array de momento
+        print("Y su nuevo nombre será: " + name_tag)
         # for item in extension_data:
         #     for i_extension in extensions_selected_to_work:
         #         if i_extension == item.get("filecategory"):
-                    
-        process_action_rename(origin_path, origin_path, extensions_selected_to_work , _)
+        get_files_with_filtred_extension(files_data, extensions_selected_to_work)
+        #process_action_rename(origin_path, origin_path,item, name_tag, extensions_selected_to_work , counter)
         # print("Se han detectado los siguientes archivos con extensión: ")
         # for ext in extension_data:
         #     print (ext)
@@ -103,6 +106,16 @@ def get_files_extension(path):
         elif ext in list_extensions:
             list_extensions[ext] += 1
     return list_extensions
+
+def get_files_with_filtred_extension(files_data, extension_list):
+    filtred_files = []
+    for file in files_data:
+        _, file_ext = os.path.splitext(file.get("filename"))
+        file_ext = file_ext.lower()
+        if file_ext in extension_list:
+            filtred_files.append(file)
+    return print(filtred_files)
+
 
 def list_categories(categories_list):
     categories = {}
